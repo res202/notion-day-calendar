@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notion Daily Widget</title>
+    <style>
+        /* =========================================
+           HIER KANNST DU DEINE FARBEN ANPASSEN 
+           ========================================= */
+        :root {
+            /* Hintergrund der Notion-Seite (für die "Löcher" und den Rahmen) */
+            --notion-bg: #ffffff; 
+            
+            /* Farben des Widgets */
+            --header-bg: #3A3838;    /* Das Dunkelrot oben */
+            --body-bg: #ebebeb;      /* Das Hellgrau in der Mitte & Unten */
+            
+            /* Textfarben */
+            --text-header: #ffffff;  /* Textfarbe im roten Bereich */
+            --text-date: #3A3838;    /* Farbe der großen Zahl (21) */
+            --text-day: #888888;     /* Farbe des Wochentags (Monday) */
+            --text-kw: #3A3838;      /* Farbe der Kalenderwoche */
+            
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--notion-bg);
+            font-family: var(--font-family);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .widget-container {
+            width: 150px; /* Breite des gesamten Widgets */
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Abstand zwischen Kalender und KW-Box */
+        }
+
+        /* Haupt-Kalenderblatt */
+        .calendar-main {
+            background-color: var(--body-bg);
+            border-radius: 2px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Leichter Schatten */
+        }
+
+        /* Der rote Bereich oben */
+        .header {
+            background-color: var(--header-bg);
+            height: 50px;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            color: var(--text-header);
+        }
+
+        /* Die zwei weißen "Abreiß-Löcher" */
+        .hole {
+            position: absolute;
+            top: -8px;
+            width: 14px;
+            height: 14px;
+            background-color: var(--notion-bg);
+            border-radius: 50%;
+        }
+        .hole.left { left: 25px; }
+        .hole.right { right: 25px; }
+
+        .month {
+            font-size: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        /* Das Punkte-Raster rechts oben */
+        .dots {
+            width: 30px;
+            height: 20px;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.6) 1.5px, transparent 2px);
+            background-size: 6px 6px;
+            margin-top: 5px;
+        }
+
+        /* Der graue Bereich in der Mitte */
+        .body {
+            padding: 10px 0 15px 0;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .date {
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--text-date);
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .day {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-day);
+        }
+
+        /* Die Box für die Kalenderwoche unten */
+        .kw-box {
+            background-color: var(--body-bg);
+            text-align: center;
+            padding: 10px 0;
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--text-kw);
+            border-radius: 2px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="widget-container">
+        <!-- Oberer Teil: Datum & Tag -->
+        <div class="calendar-main">
+            <div class="header">
+                <div class="hole left"></div>
+                <div class="hole right"></div>
+                <div class="month" id="month"></div>
+                <div class="dots"></div>
+            </div>
+            <div class="body">
+                <div class="date" id="date"></div>
+                <div class="day" id="day"></div>
+            </div>
+        </div>
+        
+        <!-- Unterer Teil: Kalenderwoche -->
+        <div class="kw-box" id="kw"></div>
+    </div>
+
+    <script>
+        // Aktuelles Datum holen
+        const today = new Date();
+
+        // 1. Monat setzen (Kurzform)
+        const monthNames = ["JAN", "FEB", "MÄR", "APR", "MAI", "JUN", "JUL", "AUG", "SEP", "OKT", "NOV", "DEZ"];
+        document.getElementById('month').innerText = monthNames[today.getMonth()];
+
+        // 2. Datum (Tag im Monat) setzen
+        document.getElementById('date').innerText = today.getDate();
+
+        // 3. Wochentag setzen (Auf dem Bild Englisch, hier auf Deutsch. Ändere es einfach, wenn du magst)
+        const dayNames = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+        // Falls du es auf Englisch willst, ersetze die Zeile drüber durch:
+        // const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        document.getElementById('day').innerText = dayNames[today.getDay()];
+
+        // 4. Kalenderwoche (KW) berechnen nach ISO 8601 Standard
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+            var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+            return weekNo;
+        }
+        document.getElementById('kw').innerText = "KW " + getWeekNumber(today);
+    </script>
+</body>
+</html>
