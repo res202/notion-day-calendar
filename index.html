@@ -132,8 +132,7 @@
 </head>
 <body>
 
-    <div class="widget-container">
-        <!-- Oberer Teil: Datum & Tag -->
+     <div class="widget-container">
         <div class="calendar-main">
             <div class="header">
                 <div class="hole left"></div>
@@ -147,36 +146,37 @@
             </div>
         </div>
         
-        <!-- Unterer Teil: Kalenderwoche -->
         <div class="kw-box" id="kw"></div>
     </div>
 
     <script>
-        // Aktuelles Datum holen
-        const today = new Date();
+        // Wir packen alles in eine Funktion, damit wir sie wiederholen können
+        function updateCalendar() {
+            const today = new Date();
 
-        // 1. Monat setzen (Kurzform)
-        const monthNames = ["JAN", "FEB", "MÄR", "APR", "MAI", "JUN", "JUL", "AUG", "SEP", "OKT", "NOV", "DEZ"];
-        document.getElementById('month').innerText = monthNames[today.getMonth()];
+            const monthNames = ["JAN", "FEB", "MÄR", "APR", "MAI", "JUN", "JUL", "AUG", "SEP", "OKT", "NOV", "DEZ"];
+            document.getElementById('month').innerText = monthNames[today.getMonth()];
 
-        // 2. Datum (Tag im Monat) setzen
-        document.getElementById('date').innerText = today.getDate();
+            document.getElementById('date').innerText = today.getDate();
 
-        // 3. Wochentag setzen (Auf dem Bild Englisch, hier auf Deutsch. Ändere es einfach, wenn du magst)
-        const dayNames = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
-        // Falls du es auf Englisch willst, ersetze die Zeile drüber durch:
-        // const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        document.getElementById('day').innerText = dayNames[today.getDay()];
+            const dayNames = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+            document.getElementById('day').innerText = dayNames[today.getDay()];
 
-        // 4. Kalenderwoche (KW) berechnen nach ISO 8601 Standard
-        function getWeekNumber(d) {
-            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
-            var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-            var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
-            return weekNo;
+            function getWeekNumber(d) {
+                d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+                d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+                var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+                var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+                return weekNo;
+            }
+            document.getElementById('kw').innerText = "KW " + getWeekNumber(today);
         }
-        document.getElementById('kw').innerText = "KW " + getWeekNumber(today);
+
+        // 1. Führe die Funktion sofort aus, wenn das Widget geladen wird
+        updateCalendar();
+
+        // 2. Führe die Funktion danach alle 60.000 Millisekunden (1 Minute) unsichtbar im Hintergrund aus
+        setInterval(updateCalendar, 60000);
     </script>
 </body>
 </html>
